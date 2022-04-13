@@ -1,6 +1,7 @@
 from SPARQLWrapper import SPARQLWrapper, GET, JSON
+from fuzzywuzzy import fuzz
 
-sparql = SPARQLWrapper("http://Numair:7200/repositories/Priority_Companies_V2")
+sparql = SPARQLWrapper("http://localhost:7200/repositories/Priority_Companies")
 sparql.setMethod(GET)
 sparql.setReturnFormat(JSON)
 query = "SELECT * WHERE { ?subject ?predicate ?object }"
@@ -30,7 +31,7 @@ for dt in data["results"]["bindings"]:
         continue
 
     if w3_string not in subject and proton_string not in subject:
-        subject = subject.replace(db_pedia_resource, '').replace(file_url, '')
+        subject = subject.replace(file_url, '')
         subjects.append(subject)
 
     if w3_string not in predicate and proton_string not in predicate:
@@ -42,5 +43,23 @@ for dt in data["results"]["bindings"]:
         objects.append(object)
 
 
-for i in range(len(subjects)):
-    print(subjects[i], properties[i], objects[i])
+#for i in range(len(subjects)):
+#    print(subjects[i], properties[i], objects[i])
+
+sub = set(subjects)
+pro = set(properties)
+obj = set(objects)
+
+sub_check = input("Enter Company Name : ")
+best_value = ""
+best_score = 0
+
+for i in sub:
+    if "Stock" not in i and db_pedia_resource in i:
+        if fuzz.partial_ratio(sub_check.lower(), i.lower()) > best_score:
+            best_score = fuzz.partial_ratio(sub_check.lower(), i.lower())
+            best_value = i
+
+print(best_value)
+print(best_score)
+print("-----------------------------------------")
